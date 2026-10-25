@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101020">
+<title>Sora3 Demo — Text to Video</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0b14;--panel:#151522;--panel2:#1c1b2c;--line:#2d2b43;--text:#f5f3ff;--muted:#aaa6c2;--purple:#9b7bff;--cyan:#6ee7f9;--good:#7ee7b1;--bad:#ff9aab}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 75% 0%,#29204c 0%,transparent 42%),var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+a{color:var(--cyan);text-decoration:none}a:hover{text-decoration:underline}.wrap{max-width:1100px;margin:auto;padding:24px}
+nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 0 36px}.brand{font-weight:850;letter-spacing:-.04em;font-size:1.15rem}.brand span{color:var(--purple)}.navlinks{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:.92rem}
+.hero{padding:44px 0 36px;display:grid;grid-template-columns:1.25fr .75fr;gap:34px;align-items:center}.eyebrow{color:var(--cyan);text-transform:uppercase;letter-spacing:.16em;font-size:.76rem;font-weight:750}.hero h1{font-size:clamp(2.6rem,7vw,5.2rem);line-height:.99;letter-spacing:-.065em;margin:16px 0 20px}.gradient{background:linear-gradient(100deg,#fff 15%,#bdaaff 56%,#72e9f7);-webkit-background-clip:text;background-clip:text;color:transparent}.lead{color:var(--muted);font-size:1.08rem;max-width:650px}.hero-card{background:linear-gradient(145deg,#24203a,#13131f);border:1px solid var(--line);border-radius:24px;padding:24px;min-height:250px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 22px 70px #0005}.orb{height:120px;width:120px;border-radius:35%;margin:10px auto 20px;background:radial-gradient(circle at 30% 25%,#e8ddff,#9b7bff 34%,#5132aa 65%,#17152c);box-shadow:0 0 70px #8e65ff55;transform:rotate(-12deg)}.tag{display:inline-flex;align-self:flex-start;border:1px solid #50436f;border-radius:999px;padding:5px 10px;color:#d5caff;font-size:.78rem}.section{margin:30px 0}.section h2{font-size:1.7rem;letter-spacing:-.035em;margin:0 0 8px}.sub{color:var(--muted);margin-top:0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.panel{background:#141420;border:1px solid var(--line);border-radius:18px;padding:20px}.panel h3{margin:8px 0}.icon{font-size:1.35rem}.panel p{color:var(--muted);margin-bottom:0}.studio{display:grid;grid-template-columns:1fr .8fr;gap:16px}.formpanel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:22px}label{display:block;font-size:.9rem;color:#d9d5eb;margin:12px 0 7px}textarea,input,select{width:100%;background:#0d0d17;border:1px solid #38354f;border-radius:11px;padding:12px;color:var(--text);font:inherit}textarea{min-height:135px;resize:vertical}button{border:0;border-radius:12px;padding:12px 17px;background:linear-gradient(100deg,#9b7bff,#6b8cff);color:white;font-weight:750;font:inherit;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.btnrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}.secondary{background:#29263b;border:1px solid #403b59}.status{border:1px solid var(--line);background:#0f0f19;border-radius:12px;padding:13px;color:var(--muted);margin-top:14px;overflow-wrap:anywhere}.status strong{color:var(--text)}.small{font-size:.86rem;color:var(--muted)}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}.stat{background:#0d0d17;border-radius:12px;padding:13px}.stat b{display:block;font-size:1.2rem}.notice{border-left:3px solid #e7bc69;background:#231e17;color:#e6d8bc;padding:13px 15px;border-radius:0 10px 10px 0;font-size:.9rem}.footer{border-top:1px solid var(--line);margin-top:48px;padding:24px 0 10px;color:var(--muted);font-size:.88rem;display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+@media(max-width:760px){.hero,.studio{grid-template-columns:1fr}.hero{padding-top:10px}.hero-card{min-height:210px}.grid{grid-template-columns:1fr}.wrap{padding:18px}.navlinks{gap:10px}nav{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav><div class="brand">✦ <span>Sora3</span> Demo</div><div class="navlinks"><a href="#studio">Studio</a><a href="#features">Features</a><a href="/docs">API Docs ↗</a><a href="/health">Health ↗</a></div></nav>
+<header class="hero">
+<div><div class="eyebrow">Experimental text-to-video</div><h1>Turn a prompt into a <span class="gradient">moving scene.</span></h1><p class="lead">A community-built video generation demo with a library of 450 creative prompts and a simple API.</p><div class="btnrow"><a href="#studio"><button>Open the studio ↓</button></a><a href="/docs"><button class="secondary">Explore API</button></a></div></div>
+<div class="hero-card"><span class="tag">PROMPT → VIDEO</span><div class="orb"></div><div><strong>Imagine it. Describe it.</strong><div class="small">Create a scene from words when a compatible generation worker is connected.</div></div></div>
+</header>
+<section class="section" id="features"><h2>Built for experimentation</h2><p class="sub">A lightweight front end for the Sora3 Demo API.</p><div class="grid">
+<div class="panel"><div class="icon">✧</div><h3>Prompt library</h3><p>Browse and reuse ideas from the included collection of 450 prompts.</p></div>
+<div class="panel"><div class="icon">▣</div><h3>Job tracking</h3><p>Submit a request and check its progress using the API job endpoints.</p></div>
+<div class="panel"><div class="icon">⌘</div><h3>Developer friendly</h3><p>FastAPI documentation and health status are available directly from this site.</p></div>
+</div></section>
+<section class="section" id="studio"><h2>Prompt studio</h2><p class="sub">Try the API from this page. Generation requires a compatible GPU worker.</p><div class="studio">
+<div class="formpanel"><label for="prompt">Describe your video</label><textarea id="prompt" maxlength="2000" placeholder="A tiny robot explores a glowing garden at dusk, cinematic camera movement..."></textarea><label for="frames">Frames</label><select id="frames"><option value="9">9 — quick test</option><option value="25">25</option><option value="49" selected>49 — longer clip</option></select><label for="fps">Frames per second</label><select id="fps"><option value="4">4 FPS</option><option value="8" selected>8 FPS</option><option value="12">12 FPS</option><option value="24">24 FPS</option></select><div class="btnrow"><button id="generate">Submit generation</button><button id="random" class="secondary" type="button">Try an example</button></div><div class="status" id="result" role="status">Ready. Enter a prompt to begin.</div></div>
+<div class="formpanel"><h3 style="margin-top:0">Service status</h3><p class="small">These checks use your currently deployed API.</p><div class="stats"><div class="stat"><span class="small">API</span><b id="apiState">Checking…</b></div><div class="stat"><span class="small">Generation</span><b id="genState">Checking…</b></div></div><div class="btnrow"><button class="secondary" id="refresh" type="button">Refresh status</button><a href="/prompts">Browse prompts ↗</a></div><div class="notice" style="margin-top:18px">This is an independent CogVideoX-based project, not OpenAI Sora. The hosted demo may have generation disabled if no GPU worker is available.</div></div>
+</div></section>
+<section class="section"><h2>Connect your workflow</h2><p class="sub">Use the API directly or explore the interactive docs.</p><div class="panel"><p><strong>API docs:</strong> <a href="/docs">/docs</a> &nbsp; · &nbsp; <strong>Health:</strong> <a href="/health">/health</a> &nbsp; · &nbsp; <strong>Prompt library:</strong> <a href="/prompts">/prompts</a></p><p class="small">Don't send secrets or private information in prompts. Public deployments should add authentication and request limits before enabling generation.</p></div></section>
+<footer class="footer"><span>© Sora3 Demo · Experimental community project</span><span>Built with FastAPI + CogVideoX</span></footer>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+async function refreshStatus(){
+  $('apiState').textContent='Checking…'; $('genState').textContent='Checking…';
+  try{
+    const r=await fetch('/health'); const d=await r.json();
+    $('apiState').textContent=r.ok?'Online':'Error';
+    $('genState').textContent=d.generation_enabled===false?'Disabled':(d.gpu_generation||'Check logs');
+  }catch(e){$('apiState').textContent='Offline';$('genState').textContent='Unavailable';}
+}
+$('refresh').addEventListener('click',refreshStatus);
+$('random').addEventListener('click',async()=>{
+ const examples=[
+  'A small orange cat pilots a cardboard spaceship through a sparkling galaxy, playful cinematic animation.',
+  'A rainy neon city at midnight, reflections shimmer on the pavement as the camera glides forward.',
+  'A tiny robot discovers a field of glowing flowers at sunset, gentle wind and dreamy camera movement.',
+  'A surreal ocean floating above the clouds, luminous waves moving beneath a pastel sky.'
+ ];
+ $('prompt').value=examples[Math.floor(Math.random()*examples.length)];
+});
+$('generate').addEventListener('click',async()=>{
+ const prompt=$('prompt').value.trim(); if(prompt.length<3){$('result').textContent='Please enter a longer prompt first.';return;}
+ $('generate').disabled=true; $('result').textContent='Submitting request…';
+ try{
+  const r=await fetch('/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,num_frames:Number($('frames').value),fps:Number($('fps').value)})});
+  const d=await r.json();
+  if(!r.ok){$('result').textContent='Request unavailable: '+(d.detail||JSON.stringify(d));return;}
+  $('result').innerHTML='<strong>Job queued</strong><br>Job ID: '+String(d.job_id||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))+'<br><a href="'+d.status_url+'">View job status ↗</a>';
+ }catch(e){$('result').textContent='Could not reach the API. Check whether the service is online.';}
+ finally{$('generate').disabled=false;}
+});
+refreshStatus();
+</script>
+</body>
+</html>
