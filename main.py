@@ -28,6 +28,36 @@ if importlib.util.find_spec("fastapi") is None:
     ])
 
 # Keep generation disabled by default on low-memory hosting.
-os.environ.setdefault("SORA3_GENERATION_ENABLED", "false")
+os.environ.setdefault("SORA3_GENERATION_ENABLED", "true")
+
+
+# Install Open-Sora 2.0 source and package if missing.
+import subprocess
+from pathlib import Path
+import os
+
+OPEN_SORA_DIR = Path(
+    os.environ.get("OPEN_SORA_DIR", "/opt/Open-Sora")
+).resolve()
+
+if not (OPEN_SORA_DIR / "opensora").is_dir():
+    OPEN_SORA_DIR.parent.mkdir(parents=True, exist_ok=True)
+
+    subprocess.check_call([
+        "git", "clone",
+        "--depth", "1",
+        "https://github.com/hpcaitech/Open-Sora.git",
+        str(OPEN_SORA_DIR),
+    ])
+
+# Install the actual Open-Sora Python package.
+subprocess.check_call([
+    sys.executable, "-m", "pip", "install",
+    "--disable-pip-version-check",
+    "-v", ".",
+], cwd=str(OPEN_SORA_DIR))
+
+os.environ["OPEN_SORA_DIR"] = str(OPEN_SORA_DIR)
+
 
 from sora3_demo.api import app  # noqa: E402,F401
