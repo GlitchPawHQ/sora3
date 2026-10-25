@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: sora3-unreleased-demo
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SORA3_GENERATION_ENABLED
+        value: "false"
+      - key: SORA3_MODEL_ID
+        value: "hpcai-tech/Open-Sora-v2 (11B)"

@@ -1,0 +1,9 @@
+__pycache__/
+.venv/
+diffusers/
+outputs/*
+!outputs/.gitkeep
+checkpoints/*
+!checkpoints/.gitkeep
+data/videos/*
+!data/videos/README.txt
