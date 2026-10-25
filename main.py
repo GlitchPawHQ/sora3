@@ -31,33 +31,18 @@ if importlib.util.find_spec("fastapi") is None:
 os.environ.setdefault("SORA3_GENERATION_ENABLED", "true")
 
 
-# Install Open-Sora 2.0 source and package if missing.
-import subprocess
-from pathlib import Path
+# Configure Open-Sora without cloning during API startup.
 import os
+from pathlib import Path
 
-OPEN_SORA_DIR = Path(
-    os.environ.get("OPEN_SORA_DIR", "/opt/Open-Sora")
-).resolve()
+PROJECT_ROOT = Path(__file__).resolve().parent
 
-if not (OPEN_SORA_DIR / "opensora").is_dir():
-    OPEN_SORA_DIR.parent.mkdir(parents=True, exist_ok=True)
+os.environ.setdefault(
+    "OPEN_SORA_DIR",
+    str(PROJECT_ROOT / "Open-Sora"),
+)
 
-    subprocess.check_call([
-        "git", "clone",
-        "--depth", "1",
-        "https://github.com/hpcaitech/Open-Sora.git",
-        str(OPEN_SORA_DIR),
-    ])
-
-# Install the actual Open-Sora Python package.
-subprocess.check_call([
-    sys.executable, "-m", "pip", "install",
-    "--disable-pip-version-check",
-    "-v", ".",
-], cwd=str(OPEN_SORA_DIR))
-
-os.environ["OPEN_SORA_DIR"] = str(OPEN_SORA_DIR)
-
+# Keep generation disabled on the Render web service.
+os.environ.setdefault("SORA3_GENERATION_ENABLED", "true")
 
 from sora3_demo.api import app  # noqa: E402,F401
