@@ -35,18 +35,44 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:16px;paddi
 </div>
 
 <script>
-const API_BASE = 'https://sora-3-l49n.onrender.com';
+/*
+ * This URL is your currently configured Render API.
+ * If the homepage is served by the same API service, the
+ * same-origin URL below is preferable and avoids CORS.
+ */
+const API_BASE = window.location.hostname === 'sora-3-l49n.onrender.com'
+  ? window.location.origin
+  : 'https://sora-3-l49n.onrender.com';
+
 const $ = id => document.getElementById(id);
 
 async function apiFetch(path, options = {}) {
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: {
-      ...(options.headers || {})
+  const response = await fetch(
+    `${API_BASE}${path}`,
+    {
+      ...options,
+      headers: {
+        Accept: 'application/json',
+        ...(options.headers || {})
+      }
     }
-  });
+  );
 
   return response;
+}
+
+async function readResponse(response) {
+  const text = await response.text();
+
+  if (!text) return {};
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {
+      detail: text.slice(0, 1000)
+    };
+  }
 }
 
 async function refreshStatus() {
@@ -54,18 +80,30 @@ async function refreshStatus() {
   $('genState').textContent = 'Checking…';
 
   try {
-    const r = await apiFetch('/health');
-    const d = await r.json();
+    const response = await apiFetch('/health');
+    const data = await readResponse(response);
 
-    $('apiState').textContent = r.ok ? 'Online' : 'Error';
+    if (!response.ok) {
+      throw new Error(
+        `Health check failed (${response.status}): ` +
+        (data.detail || 'Unknown API error')
+      );
+    }
+
+    $('apiState').textContent =
+      data.status === 'ok' ? 'Online' : 'Unhealthy';
+
     $('genState').textContent =
-      d.generation_enabled === false
-        ? 'Disabled'
-        : (d.gpu_generation || 'Enabled');
-  } catch (e) {
+      data.generation_enabled
+        ? 'Enabled'
+        : 'Disabled';
+
+    console.info('API health:', data);
+  } catch (error) {
     $('apiState').textContent = 'Connection error';
     $('genState').textContent = 'Unavailable';
-    console.error('Health request failed:', e);
+
+    console.error('Health request failed:', error);
   }
 }
 
@@ -87,17 +125,21 @@ $('generate').addEventListener('click', async () => {
   const prompt = $('prompt').value.trim();
 
   if (prompt.length < 3) {
-    $('result').textContent = 'Please enter a longer prompt first.';
+    $('result').textContent =
+      'Please enter a prompt containing at least 3 characters.';
     return;
   }
 
-  $('generate').disabled = true;
-  $('result').textContent = 'Submitting request…';
+  const button = $('generate');
+  button.disabled = true;
+  $('result').textContent = 'Submitting generation request…';
 
   try {
-    const r = await apiFetch('/generate', {
+    const response = await apiFetch('/generate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({
         prompt,
         num_frames: Number($('frames').value),
@@ -105,39 +147,56 @@ $('generate').addEventListener('click', async () => {
       })
     });
 
-    const d = await r.json();
+    const data = await readResponse(response);
 
-    if (!r.ok) {
+    if (!response.ok) {
       $('result').textContent =
-        'Request failed (' + r.status + '): ' +
-        (d.detail || JSON.stringify(d));
+        `Request failed (${response.status}): ` +
+        (data.detail || JSON.stringify(data));
+
       return;
     }
 
-    const jobId = String(d.job_id || '');
-    const statusUrl = `${API_BASE}/jobs/${encodeURIComponent(jobId)}`;
+    const jobId = String(data.job_id || '');
+
+    if (!jobId) {
+      throw new Error(
+        'The API response did not include a job ID.'
+      );
+    }
+
+    const statusUrl =
+      `${API_BASE}/jobs/${encodeURIComponent(jobId)}`;
 
     $('result').replaceChildren();
 
     const heading = document.createElement('strong');
-    heading.textContent = 'Job queued';
+    heading.textContent = 'Generation job submitted';
 
     const id = document.createElement('p');
-    id.textContent = 'Job ID: ' + jobId;
+    id.textContent = `Job ID: ${jobId}`;
+
+    const status = document.createElement('p');
+    status.textContent =
+      `Current status: ${data.status || 'queued'}`;
 
     const link = document.createElement('a');
     link.href = statusUrl;
-    link.textContent = 'View job status';
+    link.textContent = 'Check job status';
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
 
-    $('result').append(heading, id, link);
-  } catch (e) {
-    console.error('Generation request failed:', e);
+    $('result').append(heading, id, status, link);
+
+    console.info('Generation job:', data);
+  } catch (error) {
+    console.error('Generation request failed:', error);
+
     $('result').textContent =
-      'Could not connect to the API. Check the API URL and CORS settings.';
+      'Could not connect to the API. Check the API URL, ' +
+      browser console, and CORS configuration.';
   } finally {
-    $('generate').disabled = false;
+    button.disabled = false;
   }
 });
 
