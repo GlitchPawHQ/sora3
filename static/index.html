@@ -33,38 +33,116 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:16px;paddi
 <section class="section"><h2>Connect your workflow</h2><p class="sub">Use the API directly or explore the interactive docs.</p><div class="panel"><p><strong>API docs:</strong> <a href="/docs">/docs</a> &nbsp; · &nbsp; <strong>Health:</strong> <a href="/health">/health</a> &nbsp; · &nbsp; <strong>Prompt library:</strong> <a href="/prompts">/prompts</a></p><p class="small">Don't send secrets or private information in prompts. Public deployments should add authentication and request limits before enabling generation.</p></div></section>
 <footer class="footer"><span>© Sora3 Demo · Experimental community project</span><span>Built with FastAPI + CogVideoX</span></footer>
 </div>
+
 <script>
+const API_BASE = 'https://sora-3-l49n.onrender.com';
 const $ = id => document.getElementById(id);
-async function refreshStatus(){
-  $('apiState').textContent='Checking…'; $('genState').textContent='Checking…';
-  try{
-    const r=await fetch('/health'); const d=await r.json();
-    $('apiState').textContent=r.ok?'Online':'Error';
-    $('genState').textContent=d.generation_enabled===false?'Disabled':(d.gpu_generation||'Check logs');
-  }catch(e){$('apiState').textContent='Offline';$('genState').textContent='Unavailable';}
+
+async function apiFetch(path, options = {}) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: {
+      ...(options.headers || {})
+    }
+  });
+
+  return response;
 }
-$('refresh').addEventListener('click',refreshStatus);
-$('random').addEventListener('click',async()=>{
- const examples=[
-  'A small orange cat pilots a cardboard spaceship through a sparkling galaxy, playful cinematic animation.',
-  'A rainy neon city at midnight, reflections shimmer on the pavement as the camera glides forward.',
-  'A tiny robot discovers a field of glowing flowers at sunset, gentle wind and dreamy camera movement.',
-  'A surreal ocean floating above the clouds, luminous waves moving beneath a pastel sky.'
- ];
- $('prompt').value=examples[Math.floor(Math.random()*examples.length)];
+
+async function refreshStatus() {
+  $('apiState').textContent = 'Checking…';
+  $('genState').textContent = 'Checking…';
+
+  try {
+    const r = await apiFetch('/health');
+    const d = await r.json();
+
+    $('apiState').textContent = r.ok ? 'Online' : 'Error';
+    $('genState').textContent =
+      d.generation_enabled === false
+        ? 'Disabled'
+        : (d.gpu_generation || 'Enabled');
+  } catch (e) {
+    $('apiState').textContent = 'Connection error';
+    $('genState').textContent = 'Unavailable';
+    console.error('Health request failed:', e);
+  }
+}
+
+$('refresh').addEventListener('click', refreshStatus);
+
+$('random').addEventListener('click', () => {
+  const examples = [
+    'A small orange cat pilots a cardboard spaceship through a sparkling galaxy, playful cinematic animation.',
+    'A rainy neon city at midnight, reflections shimmer on the pavement as the camera glides forward.',
+    'A tiny robot discovers a field of glowing flowers at sunset, gentle wind and dreamy camera movement.',
+    'A surreal ocean floating above the clouds, luminous waves moving beneath a pastel sky.'
+  ];
+
+  $('prompt').value =
+    examples[Math.floor(Math.random() * examples.length)];
 });
-$('generate').addEventListener('click',async()=>{
- const prompt=$('prompt').value.trim(); if(prompt.length<3){$('result').textContent='Please enter a longer prompt first.';return;}
- $('generate').disabled=true; $('result').textContent='Submitting request…';
- try{
-  const r=await fetch('/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,num_frames:Number($('frames').value),fps:Number($('fps').value)})});
-  const d=await r.json();
-  if(!r.ok){$('result').textContent='Request unavailable: '+(d.detail||JSON.stringify(d));return;}
-  $('result').innerHTML='<strong>Job queued</strong><br>Job ID: '+String(d.job_id||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))+'<br><a href="'+d.status_url+'">View job status ↗</a>';
- }catch(e){$('result').textContent='Could not reach the API. Check whether the service is online.';}
- finally{$('generate').disabled=false;}
+
+$('generate').addEventListener('click', async () => {
+  const prompt = $('prompt').value.trim();
+
+  if (prompt.length < 3) {
+    $('result').textContent = 'Please enter a longer prompt first.';
+    return;
+  }
+
+  $('generate').disabled = true;
+  $('result').textContent = 'Submitting request…';
+
+  try {
+    const r = await apiFetch('/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt,
+        num_frames: Number($('frames').value),
+        fps: Number($('fps').value)
+      })
+    });
+
+    const d = await r.json();
+
+    if (!r.ok) {
+      $('result').textContent =
+        'Request failed (' + r.status + '): ' +
+        (d.detail || JSON.stringify(d));
+      return;
+    }
+
+    const jobId = String(d.job_id || '');
+    const statusUrl = `${API_BASE}/jobs/${encodeURIComponent(jobId)}`;
+
+    $('result').replaceChildren();
+
+    const heading = document.createElement('strong');
+    heading.textContent = 'Job queued';
+
+    const id = document.createElement('p');
+    id.textContent = 'Job ID: ' + jobId;
+
+    const link = document.createElement('a');
+    link.href = statusUrl;
+    link.textContent = 'View job status';
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+
+    $('result').append(heading, id, link);
+  } catch (e) {
+    console.error('Generation request failed:', e);
+    $('result').textContent =
+      'Could not connect to the API. Check the API URL and CORS settings.';
+  } finally {
+    $('generate').disabled = false;
+  }
 });
+
 refreshStatus();
 </script>
+
 </body>
 </html>
