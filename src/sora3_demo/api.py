@@ -487,23 +487,61 @@ def submit_generation(request: GenerateRequest):
     )
 
 
+
 @app.get("/jobs/{job_id}")
 def get_job(job_id: str):
     with lock:
         job = jobs.get(job_id)
 
-        if job is None:
+    # If the job is missing from memory, try restoring it from disk.
+    if job is None:
+        job_file = STATE_DIR / f"{job_id}.json"
+
+        try:
+            with job_file.open("r", encoding="utf-8") as file:
+                stored_job = json.load(file)
+        except FileNotFoundError:
             raise HTTPException(
                 status_code=404,
-                detail="Job not found on this API instance.",
+                detail=(
+                    "Job not found in memory or on disk. "
+                    "The job state may have been lost during deployment."
+                ),
+            )
+        except (OSError, ValueError) as exc:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Could not restore job record: {exc}",
+            ) from exc
+
+        if stored_job.get("job_id") != job_id:
+            raise HTTPException(
+                status_code=500,
+                detail="Stored job ID does not match the requested ID.",
             )
 
-        result = dict(job)
+        # An in-memory task cannot survive an API process restart.
+        if stored_job.get("status") in {"queued", "running"}:
+            stored_job.update(
+                status="failed",
+                error=(
+                    "Generation was interrupted by an API restart. "
+                    "Submit a new job."
+                ),
+                completed_at=now(),
+            )
+            save_job(stored_job)
+
+        with lock:
+            job = jobs.setdefault(job_id, stored_job)
+
+    result = dict(job)
 
     if result.get("status") == "completed":
         result["download_url"] = f"/jobs/{job_id}/video"
 
     return result
+
 
 
 @app.get("/jobs/{job_id}/video")
